@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const verifyToken = require("../middleware/auth.middleware");
-const requireVendor = require("../middleware/requireVendor");
+const requireVendor = require("../middleware/Requirevendor");
 
 const serviceController = require("../controllers/Vendorservicecontroller");
 const availabilityController = require("../controllers/vendorAvailabilityController");
