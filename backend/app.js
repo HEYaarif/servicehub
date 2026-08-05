@@ -11,10 +11,23 @@ const categoriesRoutes = require("./routes/Category.route");
 const servicesRoutes = require("./routes/Service.route");
 const apiRoutes = require("./routes/Customerbooking.route");
 const app = express();
+const cors = require("cors");
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://servicehub-sigma-eight.vercel.app",
+  "https://servicehub-imaarif.vercel.app",
+];
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -32,7 +45,7 @@ app.get("/", (req, res) => {
     success: true,
     message: "ServiceHub Backend API is running",});
   });
-  
+
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
