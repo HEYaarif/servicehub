@@ -1,7 +1,7 @@
-const Service = require("../models/service.model");
-const BookingSlot = require("../models/bookingSlot.model");
-const Booking = require("../models/booking.model");
-const { generateCandidateSlots } = require("../utils/slotGenerator");
+const Service = require("../models/Service.model");
+const BookingSlot = require("../models/Bookingslot.model");
+const Booking = require("../models/Booking.model");
+const { generateCandidateSlots } = require("../utils/Slotgenerator");
 async function claimSlot({ serviceId, offeringId, startAt, endAt, capacity }) {
   try {
     return await BookingSlot.create({ serviceId, offeringId, startAt, endAt, capacity, bookedCount: 1 });
