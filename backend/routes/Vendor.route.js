@@ -6,9 +6,9 @@ const requireVendor = require("../middleware/Requirevendor");
 
 const serviceController = require("../controllers/Vendorservicecontroller");
 const availabilityController = require("../controllers/vendorAvailabilityController");
-const bookingController = require("../controllers/vendorBookingController");
-const profileController = require("../controllers/vendorProfileController");
-const dashboardController = require("../controllers/vendorDashboardController");
+const bookingController = require("../controllers/Vendorbookingcontroller");
+const profileController = require("../controllers/Vendorprofilecontroller");
+const dashboardController = require("../controllers/Vendordashboardcontroller");
 
 router.use(verifyToken, requireVendor);
 
