@@ -1,5 +1,5 @@
-const Service = require("../models/service.model");
-const Booking = require("../models/booking.model");
+const Service = require("../models/Service.model");
+const Booking = require("../models/Booking.model");
 
 // GET /api/vendor/dashboard-stats
 exports.getDashboardStats = async (req, res) => {
