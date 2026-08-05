@@ -5,7 +5,7 @@ const verifyToken = require("../middleware/auth.middleware");
 const requireVendor = require("../middleware/Requirevendor");
 
 const serviceController = require("../controllers/Vendorservicecontroller");
-const availabilityController = require("../controllers/vendorAvailabilityController");
+const availabilityController = require("../controllers/Vendoravailabilitycontroller");
 const bookingController = require("../controllers/Vendorbookingcontroller");
 const profileController = require("../controllers/Vendorprofilecontroller");
 const dashboardController = require("../controllers/Vendordashboardcontroller");
