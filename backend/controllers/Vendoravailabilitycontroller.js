@@ -1,4 +1,4 @@
-const Service = require("../models/service.model");
+const Service = require("../models/Service.model");
 exports.getAvailability = async (req, res) => {
   try {
     const service = await Service.findOne({ _id: req.params.id, vendorId: req.vendor._id }).select(
