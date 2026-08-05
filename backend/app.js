@@ -11,7 +11,6 @@ const categoriesRoutes = require("./routes/Category.route");
 const servicesRoutes = require("./routes/Service.route");
 const apiRoutes = require("./routes/Customerbooking.route");
 const app = express();
-const cors = require("cors");
 
 const allowedOrigins = [
   "http://localhost:5173",
