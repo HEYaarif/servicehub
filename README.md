@@ -81,7 +81,6 @@ The application follows a **role-based authentication system** with secure JWT a
 ```
 ServiceHub
 │
-├── frontend
 │   ├── public
 │   └── src
 │       ├── admin
