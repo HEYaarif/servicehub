@@ -1,4 +1,4 @@
-const BookingSlot = require("../models/bookingSlot.model");
+const BookingSlot = require("../models/Bookingslot.model");
 function generateCandidateSlots(service, offering, startDate, endDate) {
   const slots = [];
   const now = new Date();
