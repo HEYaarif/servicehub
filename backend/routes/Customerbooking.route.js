@@ -7,7 +7,7 @@ const {
   createBooking,
   getMyBookings,
   cancelBooking,
-} = require("../controllers/customerBookingController");
+} = require("../controllers/Customerbookingcontroller");
 
 router.post("/bookings", verifyToken, requireRole("CUSTOMER"), createBooking);
 router.get(
