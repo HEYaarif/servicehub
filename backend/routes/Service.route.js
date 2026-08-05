@@ -5,7 +5,7 @@ const {
   listServices,
   getServiceById,
   getServiceSlots,
-} = require("../controllers/serviceController");
+} = require("../controllers/Servicecontroller");
 
 router.get("/", listServices);
 router.get("/:id", getServiceById);
