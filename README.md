@@ -1,267 +1,114 @@
-# 🚀 ServiceHub - Service Marketplace
+# ServiceHub — Services Marketplace
 
-A full-stack **Service Marketplace** web application built using the **MERN Stack**. ServiceHub connects customers with trusted service providers, allowing users to discover, book, and manage professional home services through a secure, role-based platform.
+A three-sided marketplace: customers book services, vendors sell and fulfil them, admins govern the whole thing. Built as a take-home assignment (services marketplace brief).
 
----
+## Tech stack
 
-## 📌 Project Overview
+| Layer | Tech |
+|---|---|
+| Frontend | React (Vite) + Tailwind CSS |
+| Backend | Node.js + Express |
+| Database | MongoDB Atlas (Mongoose) |
+| Auth | JWT (access + refresh tokens), bcrypt |
+| Payments | Mocked — no real gateway integrated |
 
-ServiceHub is a marketplace where:
+## Live links
 
-- 👤 Customers can browse and book services.
-- 🏪 Vendors can register and offer their services.
-- 🛡️ Admins manage vendors, users, services, and bookings.
+- Frontend: _add deployed URL_
+- API: _add deployed URL_
 
-The application follows a **role-based authentication system** with secure JWT authentication and an admin approval workflow for vendors.
-
----
-
-## ✨ Features
-
-### 🔐 Authentication
-- JWT Authentication
-- Access Token & Refresh Token
-- Password Encryption (bcrypt)
-- Role-Based Login
-- Protected Routes
-- Secure Logout
-
-### 👤 Customer
-- Register & Login
-- Browse Services
-- Search Services
-- Book Services
-- View Booking History
-- Manage Profile
-
-### 🏪 Vendor
-- Vendor Registration
-- Pending Approval Workflow
-- Vendor Dashboard
-- Manage Services
-- View Bookings
-- Update Profile
-
-### 🛡️ Admin
-- Admin Dashboard
-- Vendor Approval / Rejection
-- User Management
-- Service Management
-- Category Management
-- Booking Management
-- Dashboard Analytics
-
----
-
-# 🏗️ Tech Stack
-
-## Frontend
-
-- React.js
-- React Router DOM
-- Tailwind CSS
-- Axios
-- React Icons
-
-## Backend
-
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT
-- bcryptjs
-- Cookie Parser
-- CORS
-
----
-
-# 📁 Project Structure
-
-```
-ServiceHub
-│
-│   ├── public
-│   └── src
-│       ├── admin
-│       ├── api
-│       ├── components
-│       ├── pages
-│       ├── assets
-│       └── App.jsx
-│
-├── backend
-│   ├── controllers
-│   ├── middleware
-│   ├── models
-│   ├── routes
-│   ├── seed
-│   ├── utils
-│   ├── app.js
-│   └── .env
-│
-└── README.md
-```
-
----
-
-# 👥 User Roles
-
-## 👤 Customer
-
-- Register/Login
-- Browse Services
-- Book Services
-- Track Bookings
-
----
-
-## 🏪 Vendor
-
-- Register as Vendor
-- Wait for Admin Approval
-- Add/Edit/Delete Services
-- View Customer Bookings
-
----
-
-## 🛡️ Admin
-
-- Approve Vendors
-- Reject Vendors
-- Manage Users
-- Manage Categories
-- Manage Services
-- View Bookings
-- Monitor Platform Activity
-
----
-
-# 🔄 Vendor Approval Flow
-
-```
-Vendor Signup
-      │
-      ▼
-Status = PENDING
-      │
-      ▼
-Admin Dashboard
-      │
-      ▼
-Approve / Reject
-      │
-      ├── ACTIVE
-      └── REJECTED
-```
-
----
-
-# 🔑 Authentication Flow
-
-```
-Signup
-
-↓
-
-Login
-
-↓
-
-Access Token + Refresh Token
-
-↓
-
-Protected Routes
-
-↓
-
-Logout
-```
-
----
-
-# 🚀 Installation
-
-## Clone Repository
+## Getting started
 
 ```bash
-git clone https://github.com/HEYaarif/servicehub.git
-```
+# Backend
+cd backend
+npm install
+cp .env.example .env   # fill in your own values
+npm run dev
 
-## Frontend
-
-```bash
+# Frontend
 cd frontend
 npm install
+cp .env.example .env   # set VITE_API_URL
 npm run dev
 ```
 
-## Backend
+### Environment variables
+
+**Backend `.env`**
+```
+MONGO_URI=
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+PORT=5000
+```
+
+**Frontend `.env`**
+```
+VITE_API_URL=http://localhost:5000/api
+```
+
+### Seeding an admin account
 
 ```bash
 cd backend
-npm install
-npm run dev
+node scripts/createAdmin.js
+```
+Creates `admin@gmail.com` / `Admin@123` (change these before deploying anywhere real).
+
+## Roles
+
+| Role | Can do |
+|---|---|
+| **Customer** | Sign up, browse published services, view slots, book, pay (mocked), reschedule, cancel, view own bookings |
+| **Vendor** | Sign up (goes into `PENDING` until approved), manage own services and offerings, set weekly availability and date exceptions, confirm/reject/complete bookings, mark no-shows |
+| **Admin** | Approve/reject vendor applications, manage the vendor list |
+
+A pending or rejected vendor can sign in and see their status, but nothing else — enforced server-side, not just hidden in the UI.
+
+## Project structure
+
+```
+backend/
+  models/        User, Service, BookingSlot, Booking, Category
+  controllers/   auth, vendor (services/availability/bookings/profile), customer bookings, admin, categories
+  middleware/    auth.middleware (verifyToken), requireVendor, requireRole
+  routes/
+  utils/         slotGenerator.js — derives bookable slots from weekly rules + exceptions
+  scripts/       createAdmin.js, concurrencyTest.js
+
+frontend/
+  src/
+    pages/
+      customer/  Services, ServiceDetail, MyBookings
+      vendor/    Dashboard, Services, ServiceForm, Availability, Bookings, Profile
+      admin/     Vendors
+    vendor/pages/VendorLayout.jsx   — sidebar shell for the vendor section
+    api/axios.js
 ```
 
----
+## Core design decisions
 
-# ⚙️ Environment Variables
+- **Slots are derived, never hand-entered.** A vendor sets weekly rules (`weekday`, open windows, capacity) and one-off date exceptions. Bookable slots for a given offering and date range are computed on read from those rules — see `utils/slotGenerator.js`. A `BookingSlot` document is only materialized in the database the moment someone actually tries to book that time.
+- **Capacity is enforced atomically at the database level.** A booking request first tries to `create()` the slot document (covers the very first booking of a given time); if that loses a race (duplicate key on `{offeringId, startAt}`), it falls back to an atomic `findOneAndUpdate` that only increments `bookedCount` if it's still below `capacity`. Two concurrent requests for the last seat can never both succeed — see `controllers/customerBookingController.js`.
+- **Booking lifecycle** is a strict state machine (`PENDING → CONFIRMED → COMPLETED/CANCELLED/NO_SHOW`, or `PENDING → REJECTED/CANCELLED`), with every transition writing to an embedded history array on the booking so the detail view can show a timeline. Illegal transitions (e.g. completing a `PENDING` booking) return `422`.
+- **Vendor status is re-checked server-side on every request**, not trusted from the JWT — an admin approving or rejecting a vendor takes effect on the vendor's very next request, without requiring logout/login.
 
-Create a `.env` file inside the backend folder.
+## What's not built yet
 
-```env
-PORT=5000
+Being upfront about gaps rather than leaving them silent:
 
-MONGO_URI=your_mongodb_connection
+- **M7 — Payments (mocked).** Bookings currently land in `PENDING` regardless of `paymentMode`; no mock payment record, no idempotency key, no webhook simulation yet.
+- **M2 — Fine-grained RBAC.** Authorization currently uses a simple `role` field (`CUSTOMER` / `VENDOR` / `ADMIN`) rather than a data-driven permission-slug system with custom admin roles. Sufficient for this submission's scope, but not what the brief's stretch-tier permission model describes.
+- **M8 — Admin console.** Only vendor approval/rejection is built. No dashboard counts, cross-vendor booking list, force-cancel, or role management screens yet.
+- **Reschedule** (moving a booking to a different slot with atomic capacity release/claim) is not implemented.
+- **Forgot-password flow** (stretch) is not implemented.
 
-JWT_ACCESS_SECRET=your_access_secret
+## Testing
 
-JWT_REFRESH_SECRET=your_refresh_secret
+`backend/scripts/concurrencyTest.js` fires 20 simultaneous booking requests at a single slot to verify capacity is never exceeded. Run with:
 
-ACCESS_TOKEN_EXPIRE=15m
-
-REFRESH_TOKEN_EXPIRE=7d
+```bash
+API_URL=<your-api-url> TEST_CUSTOMER_TOKEN=<a-valid-customer-access-token> \
+  node scripts/concurrencyTest.js <slotId> <offeringId>
 ```
-
----
-
-# 📸 Screenshots
-
-- Home Page
-- Login
-- Signup
-- Admin Dashboard
-- Vendor Dashboard
-- Customer Dashboard
-
-*(Add screenshots after completing the project.)*
-
----
-
-# 🚧 Future Enhancements
-
-- Online Payment Gateway
-- Email Notifications
-- Image Upload
-- Ratings & Reviews
-- Wishlist
-- Real-time Booking Updates
-- Google Authentication
-- Service Recommendations
-
----
-
-# 🧑‍💻 Developer
-
-**Md Aarif**
-
-- MERN Stack Developer
-- JavaScript | React | Node.js | Express | MongoDB
-
----
-
-# 📄 License
-
-This project is developed for educational and assessment purposes.
