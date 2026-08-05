@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Service = require("../models/service.model");
+const Service = require("../models/Service.model");
 const User = require("../models/user.model");
-const { generateCandidateSlots, withRemainingCapacity } = require("../utils/slotGenerator");
+const { generateCandidateSlots, withRemainingCapacity } = require("../utils/Slotgenerator");
 
 // GET /api/services?category=&search=&page=&limit=
 exports.listServices = async (req, res) => {
